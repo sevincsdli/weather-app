@@ -11,46 +11,49 @@
   
     </video>
   
-    <div class="content p-4">
+    <div class="content p-4 ">
       <div class=""> 
-        <!-- //w-full -->
         <div class="">
-          <button
-            class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded-sm w-36 h-12"
-            @click="showPop()"
+          <div class="flex justify-between ">
+               <div class="buttons ">
+                <button
+            class="italic text-white bg-blue-600 hover:bg-blue-700 px-4 py-1 w-36 h-12 rounded-md"
+            @click= "showPop()"
           >
             ADD CITY
           </button>
-  <button class="text-white bg-lime-600 hover:bg-lime-700 px-4 py-1 rounded-sm h-12 ml-4" @click="addLocation()">
+  <button class="italic text-slate-100 bg-lime-600 hover:bg-lime-700 px-6 rounded-md py-1 h-12 ml-4" @click="addLocation()">
     ADD LOCATION
   </button>
-          <em class="text-right text-[1.3rem] fixed  left-[68vw]">{{ time }}</em>
-  <div class="form-section">
-    
+               </div>
+  
+  <div class="date  text-[1.3rem] mt-2 ">
+          <em >{{date}},</em>
+          <em class="ml-2">{{ time}}</em>
   </div>
+          </div>
+        
+  
           <div
             v-if="show"
-            class="w-[30vw] h-[20vw] rounded-sm popup bg-[rgba(0,0,0,0.4)]"
+            class="w-[30vw] h-[40vh] rounded-sm popup bg-black bg-opacity-10 flex flex-col"
           >
-            <i
-              class="fa fa-window-close text-2xl text-slate-600 relative ml-96"
-              aria-hidden="true"
-              @click="showPop()"
-            ></i>
-       
+          <i class="fa-solid fa-xmark text-2xl text-red-600 hover:text-red-800 text-write self-end mr-2" @click="closePop()"></i>
+          
+          
             <form
               action=""
               novalidate
               @submit.prevent="addCity()"
-              class="flex flex-col p-4 gap-2 "
+              class="flex flex-col p-4 gap-4 "
             >
-              <label for="city" class="text-center mt-8 text-2xl text-slate-500"
+              <label for="city" class="text-center mt-2 text-2xl text-black"
                 >Do you want add a city?</label
               >
               <input
                 type="text"
                 v-model="city"
-                class="border border-slate-300 px-2 py-[0.5rem] text-white bg-[rgba(255,255,255,0.3)]"
+                class=" text-black focus:outline-none border border-slate-700 px-2 py-[0.45rem]  bg-white"
                 name="city"
                 id="city"
                 placeholder="Please, enter city ..."
@@ -62,57 +65,35 @@
                 value="ADD"
                 class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-[0.4rem] rounded-md mt-2"
               />
-              <em class="text-center text-red-600">{{ error }}</em>
+            
+
             </form>
+            <em class="text-center text-red-600 text-xl mb-2">{{ error }}</em>
+              <em class="text-center text-lime-600 text-xl mb-2">{{ info }}</em>
           </div>
           <strong
             v-if="err"
-            class="text-center text-red-700 text-2xl relative top-28 left-36 bg-[rgba(0,0,0,0.2)] p-2"
+            class="text-center text-red-600 text-2xl p-2 noCity"
             >{{ err }}</strong
           >
-          <div class="form">
-            <form action="" class="">
-            <div class="select">
-              <select
-                id="city"
-                name="city"
-                v-model="option"
-                @click="Addoption()"
-                class="flex justify-between gap-8 font-sans fa select pl-1 focus:border-none border text-black rounded-sm border-slate-50 bg-transparent py-1"
-              >
-                <option
-                  value="add"
-                  class="bg-transparent font-sans"
-                  selected
-                  disabled
-                >
-                  Add city, firstly
-                </option>
-  
-                <option
-                  v-for="option in options"
-                  :key="option"
-                  :value="option"
-                  class="bg-transparent fa-solid fa-trash flex justify-between font-sans gap-8"
-                >
-                  {{ option }}
-                  <p class="text-red-600">&#xf1f8;</p>
-                </option>
-              </select>
-                <!-- <i class="fa fa-trash" aria-hidden="true"></i> -->
-            </div>
-          </form>
-          <!-- <div
-            @click="deleteCity1()"
-            class="text-xl text-center text-white bg-red-600 p-2 rounded-lg w-36 cursor-pointer hover:bg-red-700 "
-          >
-            Delete All
-          </div>
-          <em class="text-white text-center text-xl">{{ deleteInfo }}</em> -->
-  
-        
+
+  <div class="dropdown mx-auto italic ">
+    <div class="option flex justify-between gap-2" @click="toggleDropdown">
+      {{ selectedCity }}
+      <i class="fas fa-chevron-down"></i> 
+    </div>
+    <ul v-show="isOpen" class="options">
+      <li
+        v-for="(option, index) in options"
+        :key="index"                 
+
+        @click="selectCity(option)" class="border-b-2"
+      >
+        {{ option }}
+        <i class="fas fa-trash delete-icon" @click="deleteCity(index)"></i>
+      </li>
+    </ul>
   </div>
-   
          
           <h2 class="italic text-right text-5xl relative top-36 uppercase">
             {{ option || coords }}
@@ -196,11 +177,35 @@
         weather: "",
         deleteInfo: "",
         time: "",
-        coords:''
+        coords:'',
+        selectedCity:'Select a city...'
       };
     },
     created() {
       setInterval(this.getTime, 1000);
+      const weatherData = localStorage.getItem('weatherData');
+
+if (weatherData) {
+  // Parse the JSON data from local storage back to an object
+  const parsedWeatherData = JSON.parse(weatherData);
+
+  // Set your component's data properties with the retrieved data
+  this.icon = parsedWeatherData.icon;
+  this.temp_max = parsedWeatherData.temp_max;
+  this.img = parsedWeatherData.img;
+  this.main = parsedWeatherData.main;
+  this.list = parsedWeatherData.list;
+  this.temp = parsedWeatherData.temp;
+  this.coords = parsedWeatherData.coords;
+
+  if (this.main == 'Clouds' || this.main.includes('Clouds')) {
+    this.video = this.cloudy;
+  } else if (this.main == 'Clear' || this.main.includes('Clear')) {
+    this.video = this.clear;
+  } else if (this.main == 'Rain' || this.main.includes('Rain')) {
+    this.video = this.rainy;
+  }
+} 
     },
     mounted() {
       const optionsFromLocalStorage = localStorage.getItem("options");
@@ -214,27 +219,24 @@
       }
 
     },
+    computed:{
+date() {
+  const currentDate = new Date();
+  const options = { month: 'long', day: 'numeric' };
+  return currentDate.toLocaleDateString('en-US', options);
+},
+    },
     methods: {
-      getTime() {
-        const today = new Date();
-        const hour = today.getHours();
-        const minute = today.getMinutes();
-        const second = today.getSeconds();
-        const time = hour + ":" + minute + ":" + second;
-  
-        this.time = time;
-      },
-      deleteCity1() {
-        this.deleteInfo = "";
-        console.log("clicked");
-        this.options = [];
-        this.deleteInfo = "All cities have been deleted!";
-        localStorage.removeItem("options");
-      },
-      Addoption() {
-        console.log("clicked");
-        fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${this.option}&appid=${this.key}&units=metric`
+      toggleDropdown() {
+      this.isOpen = !this.isOpen;
+    },
+    selectCity(option) {
+      this.selectedCity = option;
+      this.isOpen = false;
+      this.coords=''
+      this.option=''
+      fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?q=${option}&appid=${this.key}&units=metric`
         )
           .then((response) => {
             return response.json();
@@ -266,11 +268,44 @@
             this.err = "Please, enter correct city name";
           });
   
+    },
+    
+    deleteCity(index) {
+      this.isOpen=true;
+      this.selectedCity = 'Select a city...';
+      this.options.splice(index, 1);
+      this.selectedCity = 'Select a city...';
+    },
+  
+      getTime() {
+        const today = new Date();
+  const hour = today.getHours();
+  const minute = today.getMinutes();
+  let second = today.getSeconds();
+
+  second = second < 10 ? "0" + second : second;
+
+  const time = hour + ":" + minute + ":" + second;
+
+  this.time = time;
+      },
+      deleteCity1() {
+        this.deleteInfo = "";
+        console.log("clicked");
+        this.options = [];
+        this.deleteInfo = "All cities have been deleted!";
+        localStorage.removeItem("options");
+      },
+      Addoption() {
+        console.log("clicked");
+        
   
       },
       addCity() {
         console.log("added");
         this.deleteInfo = "";
+        this.option=''
+        this.coords=''
         if (this.city == "") {
           this.error = "Please,enter city name...";
         } else if (this.city) {
@@ -282,14 +317,50 @@
           localStorage.setItem("options", JSON.stringify(this.options));
           localStorage.setItem("lastWeather", JSON.stringify(this.option));
   
-          this.city = "";
           this.error = " ";
   
           this.info = "City added";
+
+
+           fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?q=${this.city}&appid=${this.key}&units=metric`
+        )
+          .then((response) => {
+            return response.json();
+          })
+          .then((info) => {
+            console.log(info);
+            this.deleteInfo = "";
+            this.err = "";
+            this.list = "";
+            this.icon = info.list[0].weather[0].icon;
+            this.temp_max = info.list[0].main.temp_max;
+            this.img = `http://openweathermap.org/img/wn/${this.icon}@2x.png`;
+            this.main = info.list[0].weather[0].main;
+  
+            console.log(this.main);
+            this.list = info.list;
+            this.temp = info.list[0].main.temp;
+  
+            if (this.main == "Clouds" || this.main.includes("Clouds")) {
+              this.video = this.cloudy;
+            } else if (this.main == "Clear" || this.main.includes("Clear")) {
+              this.video = this.clear;
+            } else if (this.main == "Rain" || this.main.includes("Rain")) {
+              this.video = this.rainy;
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+            this.err = "Please, enter correct city name";
+          });
         }
       },
       showPop() {
         this.show = !this.show;
+      },
+      closePop() {
+        this.show = false;
       },
       getMonthName(date) {
         const options = { month: "long" };
@@ -317,6 +388,18 @@
           this.list = info.list;
           this.temp = info.list[0].main.temp;
           this.coords=info.city.name
+          const weatherData = {
+        icon: this.icon,
+        temp_max: this.temp_max,
+        img: this.img,
+        main: this.main,
+        list: this.list,
+        temp: this.temp,
+        coords: this.coords,
+      };
+
+      // Convert the object to a JSON string and save it in local storage
+      localStorage.setItem('weatherData', JSON.stringify(weatherData))
           if (this.main == "Clouds" || this.main.includes("Clouds")) {
             this.video = this.cloudy;
           } else if (this.main == "Clear" || this.main.includes("Clear")) {
@@ -356,31 +439,15 @@
     width: 100%;
     height: 100vh;
   }
-  .select {
-    width: 18rem;
-    font-family: sans-serif;
-    background: transparent;
-    border-color: rgba(255, 255, 255, 0.4);
-  }
-  
-  .select *{
-    background-color:transparent!important;
-  
-    color:rgba(95, 95, 95, 0.836);
-    font-family: 'Poppins', sans-serif;
-  }
-  /* .select option{
-    background: transparent;
-  } */
+
+
   .popup {
     position: fixed;
     top: 20vh;
     left: 34vw;
   }
   
-  .select option {
-    background: rgba(100, 100, 100, 0.3);
-  }
+
   .form{
   display: flex;
   gap:1rem;
@@ -388,12 +455,56 @@
   align-items: center;
   
   }
-  /* form {
-    pointer-events: auto;
-  } */
-  /* option:nth-child(1){
-  background-color:red;
-  color:red
-  } */
+  
+.dropdown {
+  position: relative;
+  width: 400px;
+}
+
+.option {
+  border: 1px solid #ccc;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.option i {
+  margin-left: 10px;
+}
+
+.options {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ccc;
+  max-height: 150px;
+  overflow-y: auto;
+  position: absolute;
+  width: 100%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.options li {
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.options li:hover{
+  background-color: rgb(143, 143, 140);
+}
+.delete-icon {
+  color: red;
+  cursor: pointer;
+}
+.noCity{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform: translate(-50%,-50%);
+}
   </style>
   
